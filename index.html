@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS OTP Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .message { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SMS OTP Verification</h1>
+        <form id="otpForm">
+            <div class="form-group">
+                <label for="mobile">Mobile Number:</label>
+                <input type="text" id="mobile" name="mobile" placeholder="Enter your mobile number" required>
+            </div>
+            <button type="button" id="sendOtpButton">Send OTP</button>
+        </form>
+
+        <form id="verifyOtpForm" style="display: none;">
+            <div class="form-group">
+                <label for="otp">Enter OTP:</label>
+                <input type="text" id="otp" name="otp" placeholder="Enter the OTP you received" required>
+            </div>
+            <button type="button" id="verifyOtpButton">Verify OTP</button>
+            <p class="message" id="verificationMessage"></p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('sendOtpButton').addEventListener('click', function() {
+            var mobile = document.getElementById('mobile').value;
+            if (mobile) {
+                fetch('/send-otp', {  // Endpoint relative to your Node.js server
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mobile: mobile })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('otpForm').style.display = 'block';
+                        document.getElementById('verifyOtpForm').style.display = 'block';
+                        document.getElementById('sendOtpButton').style.display = 'none';
+                    } else {
+                        alert('Failed to send OTP. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                alert('Please enter a valid mobile number.');
+            }
+        });
+
+        document.getElementById('verifyOtpButton').addEventListener('click', function() {
+            var mobile = document.getElementById('mobile').value;
+            var otp = document.getElementById('otp').value;
+            if (mobile && otp) {
+                fetch('/verify-otp', {  // Endpoint relative to your Node.js server
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mobile: mobile, otp: otp })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var message = document.getElementById('verificationMessage');
+                    if (data.success) {
+                        message.textContent = 'OTP verified successfully!';
+                        message.style.color = 'green';
+                    } else {
+                        message.textContent = 'Invalid OTP. Please try again.';
+                        message.style.color = 'red';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                alert('Please enter both mobile number and OTP.');
+            }
+        });
+    </script>
+</body>
+</html>
